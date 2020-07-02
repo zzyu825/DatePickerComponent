@@ -1,0 +1,44 @@
+{
+  "id": "1919242",
+  "name": "datePickeer",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "1219723",
+      "name": "日历",
+      "font_class": "rili",
+      "unicode": "e659",
+      "unicode_decimal": 58969
+    },
+    {
+      "icon_id": "7588135",
+      "name": "左箭头",
+      "font_class": "zuojiantou1",
+      "unicode": "e626",
+      "unicode_decimal": 58918
+    },
+    {
+      "icon_id": "7588137",
+      "name": "右箭头",
+      "font_class": "youjiantou",
+      "unicode": "e627",
+      "unicode_decimal": 58919
+    },
+    {
+      "icon_id": "12754195",
+      "name": "右箭头",
+      "font_class": "youjiantou_huaban",
+      "unicode": "e63f",
+      "unicode_decimal": 58943
+    },
+    {
+      "icon_id": "12754197",
+      "name": "左箭头",
+      "font_class": "zuojiantou_huaban",
+      "unicode": "e63e",
+      "unicode_decimal": 58942
+    }
+  ]
+}
