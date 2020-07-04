@@ -1,24 +1,24 @@
 <template>
-    <div class="date-picker">
+    <div class="date-picker" v-click>
         <!-- 输入区域 -->
         <div class="picker-input">
             <span class="input-prefix">
                 <i class="iconfont icon-rili"></i>
             </span>
-            <input type="text">
+            <input type="text" :value="dateFormat">
         </div>
         <!-- 选择区域 -->
-        <div class="picker-panel">
-            <div class="picker-arrow" />
+        <div class="picker-panel" v-if="show">
+            <div class="picker-arrow"/>
             <div class="picker-body">
                 <div class="picker-header">
-                    <span class="picker-btn icon-prev-year iconfont"></span>
-                    <span class="picker-btn icon-prev-month iconfont"></span>
+                    <span class="picker-btn icon-prev-year iconfont" @click="changeYear('prev')"></span>
+                    <span class="picker-btn icon-prev-month iconfont" @click="changeMonth('prev')"></span>
                     <span class="picker-date">
-                        2020年7月
+                      {{ showDate.year }}年{{ showDate.month + 1 }}月
                     </span>
-                    <span class="picker-btn icon-next-month iconfont"></span>
-                    <span class="picker-btn icon-next-year iconfont"></span>
+                    <span class="picker-btn icon-next-month iconfont" @click="changeMonth('next')"></span>
+                    <span class="picker-btn icon-next-year iconfont" @click="changeYear('next')"></span>
                 </div>
                 <div class="picker-content">
                     <div class="picker-weeks">
@@ -29,9 +29,15 @@
                     </div>
                     <div class="picker-days">
                         <div 
-                            v-for="date of 42"
-                            :key="date"
-                        >{{ date }}</div>
+                            v-for="date of showDay"
+                            :key="date.getTime()"
+                            :class="{
+                              'other-month': !isCur(date).month,
+                              'is-today': isCur(date).day,
+                              'is-select': isCur(date).select
+                            }"
+                            @click="chooseDate(date)"
+                        >{{ date.getDate() }}</div>
                     </div>
                 </div>
             </div>
@@ -39,10 +45,135 @@
     </div>
 </template>
 
+<script>
+export default {
+  directives: {
+    'click': {
+      bind(el, binding, vnode) {
+        document.onclick = e => {
+          const target = e.target;
+          const vm = vnode.context;
+          // contains 包含
+          const isInclude = el.contains(target);
+          if (isInclude && !vm.show) {
+            vm.showPanel(true);
+          } else if (!isInclude && vm.show) {
+            vm.showPanel(false);
+          }
+          // a真b假 a假b假 a真b真 a假b真
+        }
+      }
+    }
+  },
+  props: {
+    'date': {
+      type: Date,
+      default: () => new Date()
+    }
+  },
+  model: {
+    prop: 'date',
+    event: 'choose-date'
+  },
+  data() {
+    return {
+      showDate: {
+        year: 0,
+        month: 0
+      },
+      show: false
+    }
+  },
+  created () {
+    this.showDate = this.getYearMonthDay(this.date);
+  },
+  computed: {
+    dateFormat() {
+      const { year, month, day } = this.getYearMonthDay(this.date);
+      return `${year}-${month + 1}-${day}`;
+    },
+    showDay() {
+      const { year, month } = this.showDate;
+      const firstDay = new Date(year, month, 1);
+      const week = firstDay.getDay();
+      const startDay = firstDay - week * 24 * 60 * 60 * 1000;
+      const arr = [];
+      for (let i = 0; i < 42; i++) {
+        arr.push(new Date(startDay + i * 24 * 60 * 60 * 1000));
+      }
+      return arr;
+    }
+  },
+  methods: {
+    getYearMonthDay(date) {
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const day = date.getDate();
+      return {
+        year,
+        month,
+        day
+      }
+    },
+    changeYear(type) {
+      const num = type === 'prev' ? -1 : 1;
+      this.showDate.year += num;
+    },
+    changeMonth(type) {
+      let { year, month, day } = this.showDate;
+      const num = type === 'prev' ? -1 : 1;
+      // if (month !== 'undefined') {
+      //   month += num;
+      //   console.log(month);
+      //   month = (month + 12) % 12; // 11 % 12 = 11
+      //   this.showDate.month = month;
+      // }
+      // month += num;
+      // if (month > 11) {
+      //   month = 0;
+      //   this.showDate.year ++
+      // } else if (month < 0) {
+      //   month = 11;
+      //   this.showDate.year --
+      // }
+      // this.showDate.month = month;
+      const showDate = new Date(year, month, day);
+      showDate.setMonth(month + num);
+      const { year: newYear, month: newMonth } = this.getYearMonthDay(showDate);
+      this.showDate.year = newYear;
+      this.showDate.month = newMonth;
+    },
+    isCur(date) {
+      const chooseDate = new Date(this.dateFormat);
+      const { year: chooseYear, month: chooseMonth, day: chooseDay } = this.getYearMonthDay(chooseDate);
+      const { year, month, day } = this.getYearMonthDay(date);
+      const { month: showMonth } = this.showDate;
+      const { year: curYear, month: curMonth, day: curDay } = this.getYearMonthDay(new Date());
+      return {
+        month: month === showMonth,
+        day: year === curYear && month === curMonth && day === curDay,
+        select: year === chooseYear && month === chooseMonth && day === chooseDay
+      }
+    },
+    chooseDate(date) {
+      this.$emit('choose-date', date);
+      this.showPanel(false)
+      this.showDate = this.getYearMonthDay(date);
+      
+    },
+    showPanel(flag) {
+      this.show = flag;
+    }
+  }
+}
+</script>
+
 <style scoped>
 @import "./assets/font/iconfont.css";
 
-.date-picker {}
+.date-picker {
+  display: inline-block;
+}
 
 .picker-input {
   position: relative;
@@ -70,7 +201,7 @@
 }
 
 .picker-panel {
-  position: relative;
+  position: absolute;
   width: 322px;
   height: 329px;
   margin-top: 5px;
